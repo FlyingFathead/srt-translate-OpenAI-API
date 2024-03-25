@@ -69,9 +69,6 @@ except Exception as e:
     print(f"Error reading the SRT file: {e}")
     sys.exit(1)
 
-# Retrieve the OpenAI API key
-openai.api_key = get_api_key()
-
 # Initialize the OpenAI client
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
