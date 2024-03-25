@@ -112,12 +112,18 @@ client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 # Configuration retrievals
 try:
+    # Here, no is_int argument is necessary because it defaults to False.
     default_translation_language = get_config('Translation', 'DefaultLanguage', "Please enter the default translation language code (e.g., 'es' for Spanish):")
+    # For string values, even though is_int defaults to False, it's okay to specify it explicitly for clarity.
     additional_info = get_config('Translation', 'AdditionalInfo', "Enter any additional info for translation context (leave blank if none):", is_int=False)
+    # For integer values, explicitly specify is_int=True.
     block_size = get_config('Settings', 'BlockSize', "Please enter the number of subtitles to process at once (e.g., 10):", is_int=True)
-    max_line_length = get_config('Settings', 'MaxLineLength', "Max characters per subtitle line:", 42, is_int=True)
+    max_line_length = get_config('Settings', 'MaxLineLength', "Max characters per subtitle line:", is_int=True)
+    # For string values again, no need to specify is_int.
     model = get_config('Settings', 'Model', "Please enter the model to use (e.g., 'gpt-3.5-turbo-0125'):")
-    temperature = get_config('Settings', 'Temperature', "Please enter the temperature to use for translation (e.g., 0.3):", is_int=False)
+    # Here is_int is not needed as temperature is not an integer.
+    temperature = get_config('Settings', 'Temperature', "Please enter the temperature to use for translation (e.g., 0.3):")
+    # Explicitly specify is_int=True for integer values.
     max_tokens = get_config('Settings', 'MaxTokens', "Please enter the max tokens to use for translation (e.g., 1024):", is_int=True)
 except Exception as e:
     print(f"Error retrieving configuration: {e}")
