@@ -69,14 +69,16 @@ model = get_config('Settings', 'Model', "Please enter the model to use (e.g., 't
 temperature = get_config('Settings', 'Temperature', "Please enter the temperature to use for translation (e.g., 0.3):", is_int=False)
 max_tokens = get_config('Settings', 'MaxTokens', "Please enter the max tokens to use for translation (e.g., 1024):", is_int=True)
 
-# Function to translate blocks of subtitles
+# Function to translate blocks of subtitles with context-specific information
 def translate_block(block):
     combined_text = ' '.join([sub.text for sub in block])
     if additional_info:
-        combined_text = f"{additional_info} {combined_text}"
+        prompt_text = f"{additional_info} Translate this into {default_translation_language}: {combined_text}"
+    else:
+        prompt_text = f"Translate this into {default_translation_language}: {combined_text}"
     response = openai.Completion.create(
         model=model,
-        prompt=f"Translate this into {default_translation_language}: {combined_text}",
+        prompt=prompt_text,
         temperature=float(temperature),
         max_tokens=max_tokens
     )
