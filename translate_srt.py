@@ -1,5 +1,8 @@
 # translate_srt.py
-# v0.03
+# v0.04
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# https://github.com/FlyingFathead/srt-translate-OpenAI-API
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 import openai
 import pysrt
@@ -60,6 +63,7 @@ openai.api_key = get_api_key()
 
 # Retrieve various configurations
 default_translation_language = get_config('Translation', 'DefaultLanguage', "Please enter the default translation language code (e.g., 'es' for Spanish):")
+additional_info = get_config('Translation', 'AdditionalInfo', "Enter any additional info for translation context (leave blank if none):", is_int=False)
 block_size = get_config('Settings', 'BlockSize', "Please enter the number of subtitles to process at once (e.g., 10):", is_int=True)
 model = get_config('Settings', 'Model', "Please enter the model to use (e.g., 'text-davinci-003'):")
 temperature = get_config('Settings', 'Temperature', "Please enter the temperature to use for translation (e.g., 0.3):", is_int=False)
@@ -68,6 +72,8 @@ max_tokens = get_config('Settings', 'MaxTokens', "Please enter the max tokens to
 # Function to translate blocks of subtitles
 def translate_block(block):
     combined_text = ' '.join([sub.text for sub in block])
+    if additional_info:
+        combined_text = f"{additional_info} {combined_text}"
     response = openai.Completion.create(
         model=model,
         prompt=f"Translate this into {default_translation_language}: {combined_text}",
