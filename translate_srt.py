@@ -1,5 +1,5 @@
 # translate_srt.py
-# v0.08
+# v0.09
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # https://github.com/FlyingFathead/srt-translate-OpenAI-API
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -9,6 +9,7 @@ import pysrt
 import sys
 import os
 import configparser
+import shutil
 
 # Initialize and read the configuration
 config = configparser.ConfigParser()
@@ -16,6 +17,12 @@ config.read('config.ini')
 
 # Defining a unique marker
 marker = " <|> "  # Choose a unique sequence that won't appear in translations.
+
+# print term width horizontal line
+def print_horizontal_line(character='-'):
+    terminal_width = shutil.get_terminal_size().columns
+    line = character * terminal_width
+    print(line, flush=True)
 
 # Function to read the OpenAI API key securely
 def get_api_key():
@@ -86,10 +93,13 @@ except Exception as e:
 
 # Function to translate blocks of subtitles with context-specific information
 def translate_block(block, block_num, total_blocks):
+
+    print_horizontal_line()
     print(f"\n[ Translating block {block_num} / {total_blocks} ]")
-    
+    print_horizontal_line()
     combined_text = marker.join([sub.text for sub in block])
     print("Input text:")
+    print_horizontal_line()
     print(combined_text)
 
     if additional_info:
@@ -107,6 +117,13 @@ def translate_block(block, block_num, total_blocks):
 
         # Accessing the translated text correctly
         translated_text = chat_completion.choices[0].message.content.strip()
+        
+        # Print the translated text for preview
+        print_horizontal_line()
+        print("Translated text:")
+        print_horizontal_line()
+        print(translated_text)
+
     except Exception as e:
         print(f"Error during API call: {e}")
         sys.exit(1)
