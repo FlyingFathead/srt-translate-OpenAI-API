@@ -1,5 +1,5 @@
 # translate_srt.py
-# v0.07
+# v0.08
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # https://github.com/FlyingFathead/srt-translate-OpenAI-API
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -88,10 +88,17 @@ except Exception as e:
 # Function to translate blocks of subtitles with context-specific information
 def translate_block(block, block_num, total_blocks):
     print(f"\n[ Translating block {block_num} / {total_blocks} ]")
+    
+    # Combining subtitle texts within the block and showing the input text
     combined_text = marker.join([sub.text for sub in block])  # Combine with marker
+    print("Input text:")
+    print(combined_text)  # Displaying the text being sent for translation
 
     # Construct the prompt with additional info if available
-    prompt_text = f"{additional_info} Translate this into {default_translation_language}: {combined_text}" if additional_info else f"Translate this into {default_translation_language}: {combined_text}"
+    if additional_info:
+        prompt_text = f"{additional_info} Translate this into {default_translation_language}: {combined_text}"
+    else:
+        prompt_text = f"Translate this into {default_translation_language}: {combined_text}"
 
     try:
         # API call for translation
@@ -101,8 +108,14 @@ def translate_block(block, block_num, total_blocks):
             temperature=float(temperature),
             max_tokens=max_tokens
         )
+        translated_text = response.choices[0].text.strip()
+        
+        # Displaying the translated text
+        print("\nTranslated text received from the OpenAI API:")
+        print(translated_text)
+
         # Splitting the translated text by the marker to realign with original blocks
-        return response.choices[0].text.strip().split(marker)
+        return translated_text.split(marker)
     except OpenAIError as e:
         print(f"Error during API call: {e}")
         sys.exit(1)
