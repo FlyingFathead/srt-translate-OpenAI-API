@@ -1,5 +1,5 @@
 # translate_srt.py
-# v0.04
+# v0.05
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # https://github.com/FlyingFathead/srt-translate-OpenAI-API
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -9,6 +9,7 @@ import pysrt
 import sys
 import os
 import configparser
+from openai.error import OpenAIError
 
 # Initialize and read the configuration
 config = configparser.ConfigParser()
@@ -54,20 +55,31 @@ if len(sys.argv) != 2:
     sys.exit(1)
 
 input_file_path = sys.argv[1]
+if not input_file_path.lower().endswith('.srt'):
+    print("The provided file does not have an .srt extension.")
+    sys.exit(1)
 
 # Load your .srt file
-subs = pysrt.open(input_file_path)
+try:
+    subs = pysrt.open(input_file_path)
+except Exception as e:
+    print(f"Error reading the SRT file: {e}")
+    sys.exit(1)
 
 # Retrieve the OpenAI API key
 openai.api_key = get_api_key()
 
-# Retrieve various configurations
-default_translation_language = get_config('Translation', 'DefaultLanguage', "Please enter the default translation language code (e.g., 'es' for Spanish):")
-additional_info = get_config('Translation', 'AdditionalInfo', "Enter any additional info for translation context (leave blank if none):", is_int=False)
-block_size = get_config('Settings', 'BlockSize', "Please enter the number of subtitles to process at once (e.g., 10):", is_int=True)
-model = get_config('Settings', 'Model', "Please enter the model to use (e.g., 'gpt-3.5-turbo-0125'):")
-temperature = get_config('Settings', 'Temperature', "Please enter the temperature to use for translation (e.g., 0.3):", is_int=False)
-max_tokens = get_config('Settings', 'MaxTokens', "Please enter the max tokens to use for translation (e.g., 1024):", is_int=True)
+# Configuration retrievals
+try:
+    default_translation_language = get_config('Translation', 'DefaultLanguage', "Please enter the default translation language code (e.g., 'es' for Spanish):")
+    additional_info = get_config('Translation', 'AdditionalInfo', "Enter any additional info for translation context (leave blank if none):", is_int=False)
+    block_size = get_config('Settings', 'BlockSize', "Please enter the number of subtitles to process at once (e.g., 10):", is_int=True)
+    model = get_config('Settings', 'Model', "Please enter the model to use (e.g., 'gpt-3.5-turbo-0125'):")
+    temperature = get_config('Settings', 'Temperature', "Please enter the temperature to use for translation (e.g., 0.3):", is_int=False)
+    max_tokens = get_config('Settings', 'MaxTokens', "Please enter the max tokens to use for translation (e.g., 1024):", is_int=True)
+except Exception as e:
+    print(f"Error retrieving configuration: {e}")
+    sys.exit(1)
 
 # Function to translate blocks of subtitles with context-specific information
 def translate_block(block):
@@ -76,23 +88,28 @@ def translate_block(block):
         prompt_text = f"{additional_info} Translate this into {default_translation_language}: {combined_text}"
     else:
         prompt_text = f"Translate this into {default_translation_language}: {combined_text}"
-    response = openai.Completion.create(
-        model=model,
-        prompt=prompt_text,
-        temperature=float(temperature),
-        max_tokens=max_tokens
-    )
-    return response.choices[0].text.strip().split('  ')  # Assuming double space as a separator for block translations
+    try:
+        response = openai.Completion.create(
+            model=model,
+            prompt=prompt_text,
+            temperature=float(temperature),
+            max_tokens=max_tokens
+        )
+        return response.choices[0].text.strip().split('  ')  # Assuming double space as a separator
+    except OpenAIError as e:
+        print(f"Error during API call: {e}")
+        sys.exit(1)
 
 # Process subtitles in blocks
-for i in range(0, len(subs), block_size):
-    block = subs[i:i + block_size]
-    translated_block = translate_block(block)
-    
-    # Update the subtitles with their translations
-    for j, sub in enumerate(block):
-        if j < len(translated_block):
-            sub.text = translated_block[j]
+try:
+    for i in range(0, len(subs), block_size):
+        block = subs[i:i + block_size]
+        translated_block = translate_block(block)
+        for j, sub in enumerate(block):
+            sub.text = translated_block[j] if j < len(translated_block) else sub.text
+except Exception as e:
+    print(f"Error during translation process: {e}")
+    sys.exit(1)
 
 # Determine the output file name based on the input
 output_file_path = input_file_path.replace('.srt', '_translated.srt')
