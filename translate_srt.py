@@ -1,5 +1,5 @@
 # translate_srt.py
-# v0.05
+# v0.06
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # https://github.com/FlyingFathead/srt-translate-OpenAI-API
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -54,12 +54,13 @@ if len(sys.argv) != 2:
     print("Usage: python translate_srt.py path/to/your/file.srt")
     sys.exit(1)
 
+# Check the .srt file and load it in
 input_file_path = sys.argv[1]
 if not input_file_path.lower().endswith('.srt'):
     print("The provided file does not have an .srt extension.")
     sys.exit(1)
 
-# Load your .srt file
+# Load in the .srt file
 try:
     subs = pysrt.open(input_file_path)
 except Exception as e:
@@ -82,7 +83,15 @@ except Exception as e:
     sys.exit(1)
 
 # Function to translate blocks of subtitles with context-specific information
-def translate_block(block):
+def translate_block(block, block_num, total_blocks):
+    
+    # print out the block # / total #
+    print(f"\n[ Translating block {block_num} / {total_blocks} ]")
+    print("---")
+    combined_text = ' '.join([sub.text for sub in block])
+    print(combined_text)
+    print("---")
+
     combined_text = ' '.join([sub.text for sub in block])
     if additional_info:
         prompt_text = f"{additional_info} Translate this into {default_translation_language}: {combined_text}"
@@ -100,11 +109,14 @@ def translate_block(block):
         print(f"Error during API call: {e}")
         sys.exit(1)
 
+# In your main translation loop:
+total_blocks = (len(subs) + block_size - 1) // block_size
+
 # Process subtitles in blocks
 try:
-    for i in range(0, len(subs), block_size):
-        block = subs[i:i + block_size]
-        translated_block = translate_block(block)
+    for i, start in enumerate(range(0, len(subs), block_size)):
+        block = subs[start:start + block_size]
+        translated_block = translate_block(block, i + 1, total_blocks)
         for j, sub in enumerate(block):
             sub.text = translated_block[j] if j < len(translated_block) else sub.text
 except Exception as e:
@@ -116,6 +128,4 @@ output_file_path = input_file_path.replace('.srt', '_translated.srt')
 
 # Save the translated subtitles
 subs.save(output_file_path)
-
-print(f"Translation done!")
-print(f"Translated subtitles saved to: {output_file_path}")
+print(f"\nTranslation done!\nTranslated subtitles saved to: {output_file_path}")
