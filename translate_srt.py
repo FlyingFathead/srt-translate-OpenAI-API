@@ -105,8 +105,8 @@ def translate_block(block, block_num, total_blocks):
             max_tokens=max_tokens
         )
 
-        # Correctly accessing the translated text
-        translated_text = chat_completion.choices[0].message['content'].strip()
+        # Accessing the translated text correctly
+        translated_text = chat_completion.choices[0].message.content.strip()
     except Exception as e:
         print(f"Error during API call: {e}")
         sys.exit(1)
