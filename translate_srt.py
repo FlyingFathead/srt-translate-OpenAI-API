@@ -111,7 +111,7 @@ def translate_block(block, block_num, total_blocks):
     print(f"::: [ Translating block {block_num} / {total_blocks} ]")
     print_horizontal_line()
     combined_text = marker.join([sub.text for sub in block])
-    print("::: Input text:")
+    print("Input text:")
     print_horizontal_line()
     print(combined_text)
 
@@ -133,7 +133,7 @@ def translate_block(block, block_num, total_blocks):
         
         # Print the translated text for preview
         print_horizontal_line()
-        print("::: Translated text:")
+        print("Translated text:")
         print_horizontal_line()
         print(translated_text)
 
