@@ -163,5 +163,5 @@ except Exception as e:
 # Save the translated subtitles
 subs.save(output_file_path)
 print_horizontal_line()
-print(f"\nTranslation done!\nTranslated subtitles saved to: {output_file_path}")
+print(f"::: Translation done!\n::: Translated subtitles saved to: {output_file_path}")
 print_horizontal_line()
