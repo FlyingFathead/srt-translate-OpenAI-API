@@ -9,7 +9,6 @@ import pysrt
 import sys
 import os
 import configparser
-from openai.error import OpenAIError
 
 # Initialize and read the configuration
 config = configparser.ConfigParser()
@@ -116,7 +115,7 @@ def translate_block(block, block_num, total_blocks):
 
         # Splitting the translated text by the marker to realign with original blocks
         return translated_text.split(marker)
-    except OpenAIError as e:
+    except openai.OpenAIError as e:
         print(f"Error during API call: {e}")
         sys.exit(1)
 
