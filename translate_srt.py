@@ -101,13 +101,13 @@ def translate_block(block, block_num, total_blocks):
 
     try:
         # API call for translation
-        response = openai.Completion.create(
+        response = openai.ChatCompletion.create(
             model=model,
-            prompt=prompt_text,
+            messages=[{"role": "system", "content": prompt_text}],
             temperature=float(temperature),
             max_tokens=max_tokens
         )
-        translated_text = response.choices[0].text.strip()
+        translated_text = response['choices'][0]['message']['content'].strip()
         
         # Displaying the translated text
         print("\nTranslated text received from the OpenAI API:")
