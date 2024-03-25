@@ -65,7 +65,7 @@ openai.api_key = get_api_key()
 default_translation_language = get_config('Translation', 'DefaultLanguage', "Please enter the default translation language code (e.g., 'es' for Spanish):")
 additional_info = get_config('Translation', 'AdditionalInfo', "Enter any additional info for translation context (leave blank if none):", is_int=False)
 block_size = get_config('Settings', 'BlockSize', "Please enter the number of subtitles to process at once (e.g., 10):", is_int=True)
-model = get_config('Settings', 'Model', "Please enter the model to use (e.g., 'text-davinci-003'):")
+model = get_config('Settings', 'Model', "Please enter the model to use (e.g., 'gpt-3.5-turbo-0125'):")
 temperature = get_config('Settings', 'Temperature', "Please enter the temperature to use for translation (e.g., 0.3):", is_int=False)
 max_tokens = get_config('Settings', 'MaxTokens', "Please enter the max tokens to use for translation (e.g., 1024):", is_int=True)
 
