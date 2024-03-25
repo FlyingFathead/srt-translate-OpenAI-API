@@ -27,6 +27,7 @@ Before running the script, you need to set up your OpenAI API key. You can do th
 
 ## Changes
 
+- v0.11 - option to split long lines in output
 - v0.10 - avoid file collisions w/ output file
 - v0.09 - clarity for term preview
 - v0.08 - preview printout during translation
