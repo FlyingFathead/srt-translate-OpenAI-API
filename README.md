@@ -33,4 +33,4 @@ Before running the script, you need to set up your OpenAI API key. You can do th
 
 ## About
 
-By [https://github.com/FlyingFathead](FlyingFathead) (w/ digital ghost code from ChaosWhisperer)
+By [FlyingFathead](https://github.com/FlyingFathead) (w/ digital ghost code from ChaosWhisperer)
