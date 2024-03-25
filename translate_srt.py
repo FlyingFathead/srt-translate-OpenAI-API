@@ -1,5 +1,5 @@
 # translate_srt.py
-# v0.06
+# v0.07
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # https://github.com/FlyingFathead/srt-translate-OpenAI-API
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -14,6 +14,9 @@ from openai.error import OpenAIError
 # Initialize and read the configuration
 config = configparser.ConfigParser()
 config.read('config.ini')
+
+# Defining a unique marker
+marker = " <|> "  # Choose a unique sequence that won't appear in translations.
 
 # Function to read the OpenAI API key securely
 def get_api_key():
@@ -84,41 +87,39 @@ except Exception as e:
 
 # Function to translate blocks of subtitles with context-specific information
 def translate_block(block, block_num, total_blocks):
-    
-    # print out the block # / total #
     print(f"\n[ Translating block {block_num} / {total_blocks} ]")
-    print("---")
-    combined_text = ' '.join([sub.text for sub in block])
-    print(combined_text)
-    print("---")
+    combined_text = marker.join([sub.text for sub in block])  # Combine with marker
 
-    combined_text = ' '.join([sub.text for sub in block])
-    if additional_info:
-        prompt_text = f"{additional_info} Translate this into {default_translation_language}: {combined_text}"
-    else:
-        prompt_text = f"Translate this into {default_translation_language}: {combined_text}"
+    # Construct the prompt with additional info if available
+    prompt_text = f"{additional_info} Translate this into {default_translation_language}: {combined_text}" if additional_info else f"Translate this into {default_translation_language}: {combined_text}"
+
     try:
+        # API call for translation
         response = openai.Completion.create(
             model=model,
             prompt=prompt_text,
             temperature=float(temperature),
             max_tokens=max_tokens
         )
-        return response.choices[0].text.strip().split('  ')  # Assuming double space as a separator
+        # Splitting the translated text by the marker to realign with original blocks
+        return response.choices[0].text.strip().split(marker)
     except OpenAIError as e:
         print(f"Error during API call: {e}")
         sys.exit(1)
 
-# In your main translation loop:
+# In the main translation loop:
 total_blocks = (len(subs) + block_size - 1) // block_size
 
-# Process subtitles in blocks
+# Example usage in your main loop
 try:
     for i, start in enumerate(range(0, len(subs), block_size)):
         block = subs[start:start + block_size]
         translated_block = translate_block(block, i + 1, total_blocks)
         for j, sub in enumerate(block):
-            sub.text = translated_block[j] if j < len(translated_block) else sub.text
+            if j < len(translated_block):
+                sub.text = translated_block[j]
+            else:
+                sub.text = "Translation Error"
 except Exception as e:
     print(f"Error during translation process: {e}")
     sys.exit(1)
