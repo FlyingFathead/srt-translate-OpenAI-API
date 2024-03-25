@@ -109,7 +109,6 @@ except Exception as e:
 def translate_block(block, block_num, total_blocks):
     print_horizontal_line()
     print(f"::: [ Translating block {block_num} / {total_blocks} ]")
-    print_horizontal_line()
     combined_text = marker.join([sub.text for sub in block])
     print("::: Input text:")
     print_horizontal_line()
