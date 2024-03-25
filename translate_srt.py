@@ -129,7 +129,7 @@ def translate_block(block, block_num, total_blocks):
     print(f"::: [ Translating block {block_num} / {total_blocks} ]")
 
     # Format subtitles into a block with index prefixes
-    combined_text = "\n".join([f"[{sub.index}] {sub.text.replace('\n', ' ')}" for sub in block])
+    combined_text = "\n".join([f"[{sub.index}] {sub.text}".replace('\n', ' ') for sub in block])
     
     print("::: Input text:")
     print_horizontal_line()
