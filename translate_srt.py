@@ -1,5 +1,5 @@
 # translate_srt.py
-# v0.09
+# v0.10
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # https://github.com/FlyingFathead/srt-translate-OpenAI-API
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -76,6 +76,20 @@ except Exception as e:
     print(f"Error reading the SRT file: {e}")
     sys.exit(1)
 
+# Determine the output file name based on the input
+output_file_path = input_file_path.replace('.srt', '_translated.srt')
+
+# Check if the output file already exists
+if os.path.exists(output_file_path):
+    print(f"Warning: The file {output_file_path} already exists.")
+    overwrite = input("Do you want to overwrite it? (y/n): ").lower().strip()
+    while overwrite not in ['y', 'n']:
+        overwrite = input("Please enter 'y' or 'n': ").lower().strip()
+
+    if overwrite == 'n':
+        print("Translation canceled. No files were overwritten.")
+        sys.exit(0)
+
 # Initialize the OpenAI client
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
@@ -145,9 +159,6 @@ try:
 except Exception as e:
     print(f"Error during translation process: {e}")
     sys.exit(1)
-
-# Determine the output file name based on the input
-output_file_path = input_file_path.replace('.srt', '_translated.srt')
 
 # Save the translated subtitles
 subs.save(output_file_path)
