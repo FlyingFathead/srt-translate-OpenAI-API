@@ -88,19 +88,16 @@ except Exception as e:
 def translate_block(block, block_num, total_blocks):
     print(f"\n[ Translating block {block_num} / {total_blocks} ]")
     
-    # Combining subtitle texts within the block and showing the input text
-    combined_text = marker.join([sub.text for sub in block])  # Combine with marker
+    combined_text = marker.join([sub.text for sub in block])
     print("Input text:")
-    print(combined_text)  # Displaying the text being sent for translation
+    print(combined_text)
 
-    # Construct the prompt with additional info if available
     if additional_info:
         prompt_text = f"{additional_info} Translate this into {default_translation_language}: {combined_text}"
     else:
         prompt_text = f"Translate this into {default_translation_language}: {combined_text}"
 
     try:
-        # API call for translation using the updated method
         chat_completion = client.chat.completions.create(
             model=model,
             messages=[{"role": "system", "content": prompt_text}],
@@ -108,11 +105,13 @@ def translate_block(block, block_num, total_blocks):
             max_tokens=max_tokens
         )
 
-        # Accessing the translated text in the updated response structure
-        translated_text = chat_completion['choices'][0]['message']['content'].strip()
+        # Correctly accessing the translated text
+        translated_text = chat_completion.choices[0].message['content'].strip()
     except Exception as e:
         print(f"Error during API call: {e}")
         sys.exit(1)
+
+    return translated_text.split(marker)
 
 # In the main translation loop:
 total_blocks = (len(subs) + block_size - 1) // block_size
