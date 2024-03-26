@@ -16,7 +16,9 @@ config = configparser.ConfigParser()
 config.read('config.ini')
 
 # Defining a unique marker
-marker = " <|> "  # Choose a unique sequence that won't appear in translations.
+# Choose a unique sequence that won't appear in translations.
+# (not in use in current version)
+marker = " <|> "
 
 # print term width horizontal line
 def print_horizontal_line(character='-'):
@@ -206,44 +208,44 @@ print_horizontal_line()
 # ~~~
 
 # old method for translation blocks
-""" # Function to translate blocks of subtitles with context-specific information
-def translate_block(block, block_num, total_blocks):
-    print_horizontal_line()
-    print(f"::: [ Translating block {block_num} / {total_blocks} ]")
-    combined_text = marker.join([sub.text for sub in block])
-    print("::: Input text:")
-    print_horizontal_line()
-    print(combined_text)
+# # Function to translate blocks of subtitles with context-specific information
+# def translate_block(block, block_num, total_blocks):
+#     print_horizontal_line()
+#     print(f"::: [ Translating block {block_num} / {total_blocks} ]")
+#     combined_text = marker.join([sub.text for sub in block])
+#     print("::: Input text:")
+#     print_horizontal_line()
+#     print(combined_text)
 
-    if additional_info:
-        prompt_text = f"{additional_info} Translate this into {default_translation_language}: {combined_text}"
-    else:
-        prompt_text = f"Translate this into {default_translation_language}: {combined_text}"
+#     if additional_info:
+#         prompt_text = f"{additional_info} Translate this into {default_translation_language}: {combined_text}"
+#     else:
+#         prompt_text = f"Translate this into {default_translation_language}: {combined_text}"
 
-    try:
-        chat_completion = client.chat.completions.create(
-            model=model,
-            messages=[{"role": "system", "content": prompt_text}],
-            temperature=float(temperature),
-            max_tokens=max_tokens
-        )
+#     try:
+#         chat_completion = client.chat.completions.create(
+#             model=model,
+#             messages=[{"role": "system", "content": prompt_text}],
+#             temperature=float(temperature),
+#             max_tokens=max_tokens
+#         )
 
-        # Accessing the translated text correctly
-        translated_text = chat_completion.choices[0].message.content.strip()
+#         # Accessing the translated text correctly
+#         translated_text = chat_completion.choices[0].message.content.strip()
 
-        # Debug: Print the translated text to verify marker integrity
-        print_horizontal_line()
-        print("::: Translated text (verify markers):")
-        print_horizontal_line()
-        print(translated_text)
+#         # Debug: Print the translated text to verify marker integrity
+#         print_horizontal_line()
+#         print("::: Translated text (verify markers):")
+#         print_horizontal_line()
+#         print(translated_text)
 
-    except Exception as e:
-        print(f"Error during API call: {e}")
-        sys.exit(1)
+#     except Exception as e:
+#         print(f"Error during API call: {e}")
+#         sys.exit(1)
 
-    # Verify the integrity of the marker post-translation
-    if marker not in translated_text:
-        print("Warning: Marker integrity compromised post-translation.")
-        # Handle this case appropriately, perhaps by flagging or manual review.
+#     # Verify the integrity of the marker post-translation
+#     if marker not in translated_text:
+#         print("Warning: Marker integrity compromised post-translation.")
+#         # Handle this case appropriately, perhaps by flagging or manual review.
 
-    return translated_text.split(marker) """
+#     return translated_text.split(marker)
