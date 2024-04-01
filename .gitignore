@@ -1,0 +1,3 @@
+# ignore .srt's and .txt's
+*.txt
+*.srt
