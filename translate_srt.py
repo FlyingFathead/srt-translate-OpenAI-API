@@ -182,21 +182,44 @@ def translate_block(block, block_num, total_blocks):
     # Index correction logic
     corrected_translations = []
     translated_lines = translated_text.split("\n")
-    
-    # Validate and correct each line's index
-    for expected_index, translated_line in zip(original_indices, translated_lines):
-        index_str = f"[{expected_index}]"
-        if index_str not in translated_line:
-            # If the expected index is not at the beginning of the line, prepend it.
-            corrected_line = f"{index_str} {translated_line}"
-        else:
-            # If the index is correct, use the line as is.
-            corrected_line = translated_line
-        # Extract text without the index for subtitle updating.
-        corrected_text = corrected_line.replace(index_str, '', 1).strip()
-        corrected_translations.append(corrected_text)
+
+    # Handle line count mismatch
+    if len(translated_lines) != len(original_indices):
+        # Distribute translations across the original line count
+        expanded_translations = []
+        for i, text in enumerate(translated_lines):
+            # Distribute lines evenly, appending lines until the counts match
+            # This simplistic approach divides text evenly, which might not respect natural breaks
+            # For a more nuanced approach, consider parsing based on sentence endings or similar.
+            if i < len(original_indices) - 1:
+                expanded_translations.append(text)
+            else:
+                # Append any remaining text to the last expected line
+                expanded_translations.extend([text] + [""] * (len(original_indices) - len(expanded_translations) - 1))
+                break
+    else:
+        expanded_translations = translated_lines
+
+    # Assign each translation to the correct index
+    for expected_index, text in zip(original_indices, expanded_translations):
+        corrected_translations.append(f"[{expected_index}] {text.strip()}")
 
     return corrected_translations
+
+    # # Validate and correct each line's index
+    # for expected_index, translated_line in zip(original_indices, translated_lines):
+    #     index_str = f"[{expected_index}]"
+    #     if index_str not in translated_line:
+    #         # If the expected index is not at the beginning of the line, prepend it.
+    #         corrected_line = f"{index_str} {translated_line}"
+    #     else:
+    #         # If the index is correct, use the line as is.
+    #         corrected_line = translated_line
+    #     # Extract text without the index for subtitle updating.
+    #     corrected_text = corrected_line.replace(index_str, '', 1).strip()
+    #     corrected_translations.append(corrected_text)
+
+    # return corrected_translations
 
 # In the main translation loop:
 total_blocks = (len(subs) + block_size - 1) // block_size
