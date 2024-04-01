@@ -5,7 +5,7 @@ import pysrt
 import sys
 
 # Define the number of lines to display per comparison segment
-LINES_PER_SEGMENT = 5
+LINES_PER_SEGMENT = 30
 
 def print_horizontal_line(character='-', length=None):
     if length is None:
