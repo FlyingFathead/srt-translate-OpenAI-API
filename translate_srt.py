@@ -1,7 +1,5 @@
 # translate_srt.py
-
-version_number = "0.12"
-
+version_number = "0.13"
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # https://github.com/FlyingFathead/srt-translate-OpenAI-API
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -12,6 +10,7 @@ import sys
 import os
 import configparser
 import shutil
+import time
 
 # Initialize and read the configuration
 config = configparser.ConfigParser()
@@ -21,6 +20,10 @@ config.read('config.ini')
 # Choose a unique sequence that won't appear in translations.
 # (not in use in current version)
 marker = " <|> "
+
+# Constants for retry logic
+MAX_RETRY_ATTEMPTS = 3
+RETRY_INTERVAL = 5  # seconds
 
 # print term width horizontal line
 def print_horizontal_line(character='-'):
@@ -137,43 +140,63 @@ except Exception as e:
 def translate_block(block, block_num, total_blocks):
     print_horizontal_line()
     print(f"::: [ Translating block {block_num} / {total_blocks} ]")
-
-    # Format subtitles into a block with index prefixes
+    original_indices = [sub.index for sub in block]
     combined_text = "\n".join([f"[{sub.index}] {sub.text}".replace('\n', ' ') for sub in block])
-    
+
     print("::: Input text:")
     print_horizontal_line()
     print(combined_text)
 
-    # Translation prompt remains the same.
-    if additional_info:
-        prompt_text = f"{additional_info} Translate this into {default_translation_language}: {combined_text}"
-    else:
-        prompt_text = f"Translate this into {default_translation_language}: {combined_text}"
+    translated_text = ""
+    attempts = 0
 
-    # API call and translation processing remains the same.
-    try:
-        chat_completion = client.chat.completions.create(
-            model=model,
-            messages=[{"role": "system", "content": prompt_text}],
-            temperature=float(temperature),
-            max_tokens=max_tokens
-        )
-        translated_text = chat_completion.choices[0].message.content.strip()
+    while attempts < MAX_RETRY_ATTEMPTS and not translated_text:
+        try:
+            prompt_text = f"Translate this into {default_translation_language}: {combined_text}" if not additional_info else f"{additional_info} Translate this into {default_translation_language}: {combined_text}"
+            
+            chat_completion = client.chat.completions.create(
+                model=model,
+                messages=[{"role": "system", "content": prompt_text}],
+                temperature=float(temperature),
+                max_tokens=max_tokens
+            )
+            translated_text = chat_completion.choices[0].message.content.strip()
 
-        print_horizontal_line()
-        print("::: Translated text (verify indexes):")
-        print_horizontal_line()
-        print(translated_text)
+            if not translated_text:
+                raise ValueError("Empty translation received")
 
-    except Exception as e:
-        print(f"Error during API call: {e}")
-        sys.exit(1)
+        except Exception as e:
+            print(f"Error during translation attempt {attempts + 1}: {e}")
+            time.sleep(RETRY_INTERVAL)
+            attempts += 1
 
-    # Splitting based on newline characters and index prefixes, then extracting the text.
-    indexed_translations = [line[line.find(']') + 2:] for line in translated_text.split("\n") if line.strip()]
+    if not translated_text:
+        print(f"::: Translation failed after {MAX_RETRY_ATTEMPTS} attempts.")
+        translated_text = "\n".join([f"[{index}] Translation Error" for index in original_indices])
+
+    print_horizontal_line()
+    print("::: Translated text (verify indexes):")
+    print_horizontal_line()
+    print(translated_text)
+
+    # Index correction logic
+    corrected_translations = []
+    translated_lines = translated_text.split("\n")
     
-    return indexed_translations
+    # Validate and correct each line's index
+    for expected_index, translated_line in zip(original_indices, translated_lines):
+        index_str = f"[{expected_index}]"
+        if index_str not in translated_line:
+            # If the expected index is not at the beginning of the line, prepend it.
+            corrected_line = f"{index_str} {translated_line}"
+        else:
+            # If the index is correct, use the line as is.
+            corrected_line = translated_line
+        # Extract text without the index for subtitle updating.
+        corrected_text = corrected_line.replace(index_str, '', 1).strip()
+        corrected_translations.append(corrected_text)
+
+    return corrected_translations
 
 # In the main translation loop:
 total_blocks = (len(subs) + block_size - 1) // block_size
