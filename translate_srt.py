@@ -179,30 +179,22 @@ def translate_block(block, block_num, total_blocks):
     print_horizontal_line()
     print(translated_text)
 
-    # Index correction logic
     corrected_translations = []
     translated_lines = translated_text.split("\n")
+    
+    # Directly assign translated content without inserting index markers
+    for i, text in enumerate(translated_lines):
+        # Remove any numerical prefix mistakenly carried over from input
+        cleaned_text = text.partition(']')[2].strip() if ']' in text else text.strip()
+        if i < len(original_indices):
+            corrected_translations.append(cleaned_text)
+        else:
+            # If there are more lines than expected, it breaks out or logs extra lines
+            break
 
-    # Handle line count mismatch
-    if len(translated_lines) != len(original_indices):
-        # Distribute translations across the original line count
-        expanded_translations = []
-        for i, text in enumerate(translated_lines):
-            # Distribute lines evenly, appending lines until the counts match
-            # This simplistic approach divides text evenly, which might not respect natural breaks
-            # For a more nuanced approach, consider parsing based on sentence endings or similar.
-            if i < len(original_indices) - 1:
-                expanded_translations.append(text)
-            else:
-                # Append any remaining text to the last expected line
-                expanded_translations.extend([text] + [""] * (len(original_indices) - len(expanded_translations) - 1))
-                break
-    else:
-        expanded_translations = translated_lines
-
-    # Assign each translation to the correct index
-    for expected_index, text in zip(original_indices, expanded_translations):
-        corrected_translations.append(f"[{expected_index}] {text.strip()}")
+    # Handle any missing translation lines
+    while len(corrected_translations) < len(original_indices):
+        corrected_translations.append("<<MISSING TRANSLATION>>")
 
     return corrected_translations
 
